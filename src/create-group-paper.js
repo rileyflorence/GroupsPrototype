@@ -6,7 +6,7 @@ import RaisedButton from "material-ui/RaisedButton";
 import { CardActions } from "material-ui/Card";
 import AutoComplete from "material-ui/AutoComplete";
 import PeopleListView from "./people-list-view.js";
-import DatePicker from "material-ui/DatePicker";
+import db from "./firebase";
 
 const CardContentStyle = {
   padding: 20,
@@ -25,26 +25,29 @@ class CreateGroup extends Component {
     disabledCreateGroup: true,
     selectedPeople: [],
     people: ["cougs4ever", "swordboy", "rflorence", "jmartel"],
-    groupNameValue: "",
+    groupName: "",
+    groupDescription: "",
     searchText: ""
   };
 
   clearForm = () => {
     this.setState({
       creatingGroup: false,
-      groupNameValue: "",
       selectedPeople: [],
-      searchText: ""
+      searchText: "",
+      groupName: "",
+      groupDescription: "",
+      disabledCreateGroup: true
     });
   };
 
   handleChange = event => {
     this.setState(
       {
-        groupNameValue: event.target.value
+        [event.target.name]: event.target.value
       },
       () => {
-        this.state.groupNameValue === ""
+        this.state.groupName === ""
           ? this.setState({ disabledCreateGroup: true })
           : this.setState({ disabledCreateGroup: false });
       }
@@ -57,6 +60,14 @@ class CreateGroup extends Component {
     });
   };
 
+  handleSubmit = event => {
+    event.preventDefault();
+    db.ref("/places").push({
+      name: this.state.groupName,
+      description: this.state.groupDescription
+    });
+    this.clearForm();
+  };
   insertNewName = user => {
     this.setState({
       selectedPeople: this.state.selectedPeople.concat([user]),
@@ -71,7 +82,7 @@ class CreateGroup extends Component {
       <div>
         {creatingGroup
           ? <Paper zDepth={3} style={{ paddingBottom: 20 }}>
-              <div style={CardContentStyle}>
+              <form style={CardContentStyle} onSubmit={this.handleSubmit}>
                 <h2 style={{ margin: 0 }}>Create a New Group</h2>
 
                 <TextField
@@ -79,15 +90,19 @@ class CreateGroup extends Component {
                   floatingLabelText="Group Name"
                   fullWidth={true}
                   ref={focusGroupNameInputField}
-                  value={this.state.groupNameValue}
+                  value={this.state.groupName}
                   onChange={this.handleChange}
+                  name="groupName"
                 />
                 <br />
                 <TextField
                   hintText="What is the focus of the group?"
                   floatingLabelText="Group Description"
+                  value={this.state.groupDescription}
                   fullWidth={true}
                   multiLine={true}
+                  onChange={this.handleChange}
+                  name="groupDescription"
                 />
                 <br />
                 <AutoComplete
@@ -103,16 +118,18 @@ class CreateGroup extends Component {
                 />
 
                 <PeopleListView people={selectedPeople} />
-              </div>
-              <CardActions>
-                <RaisedButton
-                  label="Create Group"
-                  disabled={this.state.disabledCreateGroup}
-                  primary={true}
-                  style={{ marginLeft: 10 }}
-                />
-                <FlatButton label="Cancel" onClick={this.clearForm} />
-              </CardActions>
+
+                <CardActions>
+                  <RaisedButton
+                    label="Create Group"
+                    disabled={this.state.disabledCreateGroup}
+                    primary={true}
+                    style={{ marginLeft: 10 }}
+                    type="submit"
+                  />
+                  <FlatButton label="Cancel" onClick={this.clearForm} />
+                </CardActions>
+              </form>
             </Paper>
           : <Paper zDepth={1}>
               <FlatButton

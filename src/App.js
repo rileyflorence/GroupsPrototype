@@ -4,26 +4,36 @@ import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import Divider from "material-ui/Divider";
 import ViewGroup from "./view-group.js";
 import CreateGroup from "./create-group-paper.js";
-import DatePicker from "material-ui/DatePicker";
-import RaisedButton from "material-ui/RaisedButton";
 import Header from "./header.js";
+import db from "./firebase.js";
 
-/* var WebFontConfig = {
-  google: { families: [ 'Roboto:400,300,500:latin' ] }
+const makeList = obj => {
+  return Object.keys(obj).map(key => {
+    const item = obj[key];
+    item.key = key;
+    return item;
+  });
 };
-      (function() {
-        var wf = document.createElement('script');
-        wf.src = 'https://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
-        wf.type = 'text/javascript';
-        wf.async = 'true';
-        var s = document.getElementsByTagName('script')[0];
-        s.parentNode.insertBefore(wf, s);
-      })(); */
 
 var injectTapEventPlugin = require("react-tap-event-plugin");
 injectTapEventPlugin();
 
 class App extends Component {
+  componentDidMount() {
+    db.ref("users").on("value", snapshot => {
+      this.setState({
+        users: snapshot.val() || /*<-- this means or*/ []
+      });
+    });
+    /*fetch(
+      "https://randomuser.me/api/?results=1000&inc=name,email,phone,picture,login"
+    )
+      .then(res => res.json())
+      .then(json => {
+        db.ref("/ftUsers").push(json.results);
+      });*/
+  }
+
   render() {
     const groupsStyle = {
       maxWidth: "640px",
@@ -55,7 +65,7 @@ class App extends Component {
 
             </ul>
             <Divider style={{ marginBottom: "20px" }} />
-            <h2>Groups I'm In</h2>
+            <h2>Family Places I'm In</h2>
             <ul style={groupsListStyle}>
               <li style={groupsListItemStyle}>
                 <ViewGroup
